@@ -203,8 +203,12 @@
     } animated:animated completion:completion];
 }
 
+
 - (void)updateDetailLabelWithString:(NSString *)string animated:(BOOL)animated completion:(void (^)(BOOL finished))completion
 {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    
     CGFloat length = (animated) ? animationLength : 0.0;
     CGFloat labelWidth = 15; // padding
 	if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_6_1)
@@ -223,6 +227,8 @@
 	CGFloat pinSelectionTop = self.enterPasscodeLabel.frame.origin.y + self.enterPasscodeLabel.frame.size.height + 17.5;
 	
     self.detailLabel.frame = CGRectMake(([self correctWidth]/2) - 100, pinSelectionTop + 30, 200, 23);
+    
+#pragma clang diagnostic pop
 }
 
 - (void)lockViewAnimated:(BOOL)animated completion:(void (^)(BOOL finished))completion
