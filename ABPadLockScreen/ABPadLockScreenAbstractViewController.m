@@ -70,8 +70,17 @@
 {
     [super viewDidLoad];
     
-    self.view = [[ABPadLockScreenView alloc] initWithFrame:self.view.bounds complexPin:self.isComplexPin];
-    [self setUpButtonMapping];
+    CGRect bounds = self.view.bounds;
+    if ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        if (bounds.size.width > bounds.size.height) {
+            CGFloat height = bounds.size.width;
+            CGFloat width = bounds.size.height;
+            bounds.size.height = height;
+            bounds.size.width = width;
+        }
+    }
+    
+    self.view = [[ABPadLockScreenView alloc] initWithFrame:bounds complexPin:self.isComplexPin];    [self setUpButtonMapping];
     [lockScreenView.cancelButton addTarget:self action:@selector(cancelButtonSelected:) forControlEvents:UIControlEventTouchUpInside];
     [lockScreenView.deleteButton addTarget:self action:@selector(deleteButtonSelected:) forControlEvents:UIControlEventTouchUpInside];
 	[lockScreenView.okButton addTarget:self action:@selector(okButtonSelected:) forControlEvents:UIControlEventTouchUpInside];
