@@ -24,8 +24,11 @@
 #import "ABPadLockScreenView.h"
 #import "ABPinSelectionView.h"
 #import <AudioToolbox/AudioToolbox.h>
+#import <LocalAuthentication/LocalAuthentication.h>
 
 #define lockScreenView ((ABPadLockScreenView *) [self view])
+
+NSString* ABPasLockScreenTouchIdEnabled = @"ABPasLockScreenTouchIdEnabled";
 
 @interface ABPadLockScreenViewController ()
 
@@ -85,18 +88,79 @@
     _singleAttemptLeftString = title;
 }
 
+-(void) viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:ABPasLockScreenTouchIdEnabled] == YES)
+    {
+        LAContext *context = [[LAContext alloc] init];
+
+        NSError *error = nil;
+        if ([context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error])
+        {
+            [context evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics localizedReason:@"Touch to unlock"                      reply:^(BOOL success, NSError *error)
+            {
+                if (success)
+                {
+                    [self unlockScreen];
+                }
+            }];
+        }
+    }
+}
+
 #pragma mark -
 #pragma mark - Pin Processing
 - (void)processPin
 {
     if ([self isPinValid:self.currentPin])
     {
-        [self unlockScreen];
+        BOOL promptingUser = NO;
+        
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:ABPasLockScreenTouchIdEnabled] == nil)
+        {
+            LAContext *context = [[LAContext alloc] init];
+            NSError* error;
+            
+            if ([context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error])
+            {
+                [self promptForTouchIdWithCompletion:^(BOOL result){
+                    
+                    [[NSUserDefaults standardUserDefaults] setBool:result forKey:ABPasLockScreenTouchIdEnabled];
+                    [self unlockScreen];
+                }];
+                
+                promptingUser = YES;
+            }
+        }
+        
+        if (!promptingUser)
+        {
+            [self unlockScreen];
+        }
     }
     else
     {
         [self processFailure];
     }
+}
+
+-(void) promptForTouchIdWithCompletion:(void (^)(BOOL))completion
+{
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Passcode Security" message:@"Enable TouchID for passcode screen?\n\nYou can change this later from passcode settings." preferredStyle:UIAlertControllerStyleAlert];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"Use TouchID" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action)
+    {
+        completion(YES);
+    }]];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action)
+    {
+        completion(NO);
+    }]];
+    
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 - (void)unlockScreen

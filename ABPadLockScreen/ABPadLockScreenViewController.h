@@ -78,3 +78,5 @@
 - (void)attemptsExpiredForPadLockScreenViewController:(ABPadLockScreenViewController *)padLockScreenViewController;
 
 @end
+
+extern NSString* ABPasLockScreenTouchIdEnabled;
