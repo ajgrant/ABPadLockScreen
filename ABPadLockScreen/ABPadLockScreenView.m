@@ -548,7 +548,8 @@
     CGRect newFrame = CGRectMake(roundedView.frame.origin.x, roundedView.frame.origin.y, newSize, newSize);
     roundedView.frame = newFrame;
     roundedView.clipsToBounds = YES;
-    roundedView.layer.cornerRadius = newSize / 2.0;
+    // Removed as Apple cry it looks to similar to 'existing UI'
+    roundedView.layer.cornerRadius = newSize / 6.0;
 }
 
 @end
